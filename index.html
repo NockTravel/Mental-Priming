@@ -122,6 +122,18 @@
   .qeDot{width:26px;height:26px;border-radius:50%;background:var(--gold);box-shadow:0 0 18px rgba(245,197,24,.6)}
   .qeHintTxt{position:absolute;bottom:16px;left:0;right:0;text-align:center;color:var(--muted);font-size:.85rem;padding:0 16px}
   .distractor{position:absolute;width:30px;height:30px;border-radius:50%;background:var(--c-red);opacity:.0;pointer-events:none;transition:opacity .12s}
+  .exp{color:var(--muted);font-weight:600;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line);border-radius:99px;padding:2px 7px;margin-left:6px;vertical-align:middle}
+
+  /* ---- Reaction ---- */
+  .rxStatus{font-size:clamp(1.5rem,7vw,2.3rem);font-weight:750;color:var(--muted);text-align:center;line-height:1.3}
+  .rxPad{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:auto}
+  .rxBtn{border:1px solid var(--line);background:var(--panel-2);color:var(--text);border-radius:16px;padding:32px 10px;
+    font-weight:750;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:background .05s,box-shadow .05s,transform .06s}
+  .rxBtn:active{transform:scale(.97)}
+  .rxBtn .rxLabel{font-size:1.25rem}
+  .rxBtn .rxSide{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+  .rxBtn.lit{background:var(--gold);border-color:var(--gold);color:#07140f;box-shadow:0 0 34px rgba(245,197,24,.55)}
+  .rxBtn.lit .rxSide{color:#07140f}
 
   /* ---- Imagery ---- */
   .imgStage{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;min-height:220px}
@@ -188,6 +200,7 @@
       <button class="tile" data-go="stroopStart"><div class="t">Colour Match</div><div class="d">Tap the ink colour, not the word. Overrides the automatic read.</div></button>
       <button class="tile" data-go="gridStart"><div class="t">Number Hunt</div><div class="d">Find numbers across a grid in sequence. Scanning, memory, speed.</div></button>
       <button class="tile" data-go="quietStart"><div class="t">Quiet Eye</div><div class="d">Hold a steady, still gaze on the aim point and ignore distraction.</div></button>
+      <button class="tile" data-go="reactStart"><div class="t">Reaction</div><div class="d">Light means left, sound means right. React to the right channel, fast.</div></button>
     </div>
 
     <div class="sect">Calm &amp; rehearse</div>
@@ -301,13 +314,16 @@
     <div class="card"><h2>How it works</h2>
       <div class="rule"><span class="n">1</span><span>Press and hold on the gold dot, and keep your eyes locked on it.</span></div>
       <div class="rule"><span class="n">2</span><span>Keep your finger still — drifting or lifting early breaks the hold.</span></div>
-      <div class="rule"><span class="n">3</span><span>Red flashes will try to pull your eye. Ignore them. Each rep holds a little longer.</span></div>
+      <div class="rule"><span class="n">3</span><span>At higher levels, flashes, sounds and buzzes try to pull your focus. Hold anyway. Each rep lasts a little longer.</span></div>
     </div>
-    <div class="card"><h2>Distraction</h2>
+    <div class="card"><h2>Distraction <span class="exp">experimental</span></h2>
       <div class="seg" id="qeDist">
-        <button data-d="0" aria-pressed="false">Off<span class="sub">calm</span></button>
-        <button data-d="1" aria-pressed="true">On<span class="sub">flashes</span></button>
+        <button data-d="0" aria-pressed="false">Off</button>
+        <button data-d="1" aria-pressed="true">L1<span class="sub">sight</span></button>
+        <button data-d="2" aria-pressed="false">L2<span class="sub">+ sound</span></button>
+        <button data-d="3" aria-pressed="false">L3<span class="sub">+ touch</span></button>
       </div>
+      <p class="hint" style="margin-top:10px">Layered random interruptions to train holding focus — sight, then sound, then a buzz (phones that support vibration). A realism add-on, not a proven protocol. Sound and vibration need your volume on and, for the buzz, a mobile device.</p>
     </div>
     <button class="btn-primary" id="quietBegin">Begin</button>
   </section>
@@ -329,6 +345,51 @@
     </div>
     <p class="recap" id="qeRecap">—</p>
     <button class="btn-primary" id="quietAgain">Go again</button>
+    <button class="btn-ghost" data-go="menu">Back to menu</button>
+  </section>
+
+  <!-- ===================== REACTION ===================== -->
+  <section id="reactStart" class="screen">
+    <button class="back" data-go="menu">‹ Menu</button>
+    <div class="tag">Reaction</div><h1>Light or sound</h1>
+    <p class="lead">Two buttons. If the left one lights up, hit it. If you hear a beep, hit the right one. React to the correct channel as fast as you can — and don't jump early.</p>
+    <div class="card"><h2>How it works</h2>
+      <div class="rule"><span class="n">1</span><span><b>See</b> the left button flash → tap <b>Light</b> (left).</span></div>
+      <div class="rule"><span class="n">2</span><span><b>Hear</b> the beep → tap <b>Sound</b> (right).</span></div>
+      <div class="rule"><span class="n">3</span><span>The wait before each cue is random. Tapping before the cue is a false start.</span></div>
+    </div>
+    <div class="card"><h2>Length</h2>
+      <div class="seg" id="rxLen">
+        <button data-n="10" aria-pressed="false">Short<span class="sub">10</span></button>
+        <button data-n="20" aria-pressed="true">Standard<span class="sub">20</span></button>
+        <button data-n="30" aria-pressed="false">Long<span class="sub">30</span></button>
+      </div>
+    </div>
+    <p class="hint">Turn your sound on — the beep is part of the game.</p>
+    <button class="btn-primary" id="reactBegin">Begin</button>
+  </section>
+  <section id="reactGame" class="screen">
+    <div class="topbar"><span class="count"><span id="rxCur">0</span> / <span id="rxTot">20</span></span><button class="quit" data-go="reactStart">End</button></div>
+    <div class="progress"><i id="rxProg"></i></div>
+    <div class="stage"><div class="rxStatus" id="rxStatus">Get ready…</div></div>
+    <div class="rxPad">
+      <button class="rxBtn" id="rxLeft"><span class="rxLabel">Light</span><span class="rxSide">left</span></button>
+      <button class="rxBtn" id="rxRight"><span class="rxLabel">Sound</span><span class="rxSide">right</span></button>
+    </div>
+  </section>
+  <section id="reactResults" class="screen">
+    <div class="tag">Reaction · complete</div><h1 style="margin-bottom:18px">Your results</h1>
+    <div class="grid2">
+      <div class="stat"><div class="k">Avg reaction</div><div class="v" id="rxAvg">—<span class="u">ms</span></div></div>
+      <div class="stat"><div class="k">Accuracy</div><div class="v" id="rxAcc">—</div></div>
+    </div>
+    <div class="cmp"><h2>By channel</h2>
+      <p class="note">Most people react to sound a touch faster than to light. Here's your split.</p>
+      <div class="bar"><div class="lab"><span>Light (visual)</span><b id="rxVis">—</b></div><div class="track cong"><i id="rxVisBar"></i></div></div>
+      <div class="bar"><div class="lab"><span>Sound (audio)</span><b id="rxAud">—</b></div><div class="track incong"><i id="rxAudBar"></i></div></div>
+      <div class="interf"><div class="k">False starts · misses</div><div class="v" id="rxErr">—</div></div>
+    </div>
+    <button class="btn-primary" id="reactAgain">Go again</button>
     <button class="btn-ghost" data-go="menu">Back to menu</button>
   </section>
 
@@ -461,7 +522,7 @@
     [].forEach.call(this.children,function(c){c.setAttribute("aria-pressed","false");});b.setAttribute("aria-pressed","true");set(b);});}
 
   var SCREENS=["menu","stroopStart","stroopGame","stroopResults","gridStart","gridGame","gridResults",
-    "quietStart","quietGame","quietResults","breatheStart","breatheGame","imageryStart","imageryGame",
+    "quietStart","quietGame","quietResults","reactStart","reactGame","reactResults","breatheStart","breatheGame","imageryStart","imageryGame",
     "routineStart","routineGame","binauralStart","binauralGame"];
   function show(s){ SCREENS.forEach(function(x){$(x).classList.toggle("active",x===s);}); onLeave(s); }
   function onLeave(to){ // stop anything running when navigating
@@ -470,6 +531,7 @@
     if(to!=="routineGame") stopRoutine();
     if(to!=="binauralGame"&&to!=="binauralStart") stopBinaural();
     if(to!=="quietGame") qeCancel();
+    if(to!=="reactGame") reactStop();
   }
   document.addEventListener("click",function(e){var t=e.target.closest("[data-go]");if(t)show(t.getAttribute("data-go"));});
 
@@ -488,6 +550,7 @@
       o.stop(t+(dur||0.15)+0.02);
     }catch(e){}
   }
+  function ensureAudio(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();}catch(e){}}
 
   /* =============== COLOUR MATCH =============== */
   var COLORS=["red","green","blue","yellow"],LABEL={red:"RED",green:"GREEN",blue:"BLUE",yellow:"YELLOW"},
@@ -569,10 +632,10 @@
     var dur=qeHolds[qeRepI],fg=$("qeFg");
     fg.style.transition="stroke-dashoffset "+dur+"s linear";void fg.offsetWidth;fg.style.strokeDashoffset=0;
     qeTimeout=setTimeout(qeRepDone,dur*1000);
-    if(qeDist)qeDistTimer=setInterval(qeFlash,700+Math.random()*600);}
-  function qeBreak(){if(!qeHolding)return;qeHolding=false;clearTimeout(qeTimeout);clearInterval(qeDistTimer);
+    if(qeDist>0)qeScheduleDistract();}
+  function qeBreak(){if(!qeHolding)return;qeHolding=false;clearTimeout(qeTimeout);clearTimeout(qeDistTimer);
     qeBreaks++;qeResetRing();$("qeHint").textContent="Broke — reset. Press and hold again";qeClearFlashes();}
-  function qeRepDone(){qeHolding=false;clearInterval(qeDistTimer);qeClearFlashes();qeDone++;qeRepI++;
+  function qeRepDone(){qeHolding=false;clearTimeout(qeDistTimer);qeClearFlashes();qeDone++;qeRepI++;
     if(qeRepI>=qeHolds.length){qeFinish();return;}
     $("qeHint").textContent="Held. Next rep ready";setTimeout(qeSetRep,500);}
   function qeFlash(){var st=$("qeStage"),d=document.createElement("div");d.className="distractor";
@@ -580,8 +643,20 @@
     d.style.left=(pad+Math.random()*(w-pad*2-30))+"px";d.style.top=(pad+Math.random()*(h-pad*2-30))+"px";
     st.appendChild(d);requestAnimationFrame(function(){d.style.opacity=".85";});
     setTimeout(function(){d.style.opacity="0";setTimeout(function(){if(d.parentNode)d.parentNode.removeChild(d);},200);},400);}
+  function qeNoise(){try{ensureAudio();if(!AC)return;
+    if(Math.random()<0.5){beep(260+Math.random()*520,0.08,0.15);}
+    else{var dur=0.11,sr=AC.sampleRate,buf=AC.createBuffer(1,Math.floor(sr*dur),sr),dd=buf.getChannelData(0);
+      for(var i=0;i<dd.length;i++)dd[i]=(Math.random()*2-1)*Math.pow(1-i/dd.length,2);
+      var src=AC.createBufferSource();src.buffer=buf;var g=AC.createGain();g.gain.value=0.2;
+      src.connect(g);g.connect(AC.destination);src.start();}}catch(e){}}
+  function qeBuzz(){try{if(navigator.vibrate)navigator.vibrate(25+Math.floor(Math.random()*45));}catch(e){}}
+  function qeFire(ch){if(ch==="sight")qeFlash();else if(ch==="sound")qeNoise();else if(ch==="touch")qeBuzz();}
+  function qeDoDistract(){var ch=[];if(qeDist>=1)ch.push("sight");if(qeDist>=2)ch.push("sound");if(qeDist>=3)ch.push("touch");
+    if(!ch.length)return;var pick=ch[Math.floor(Math.random()*ch.length)];qeFire(pick);
+    if(ch.length>1&&Math.random()<0.25){var other=ch[Math.floor(Math.random()*ch.length)];if(other!==pick)qeFire(other);}}
+  function qeScheduleDistract(){qeDistTimer=setTimeout(function(){if(!qeHolding)return;qeDoDistract();qeScheduleDistract();},550+Math.random()*1150);}
   function qeClearFlashes(){[].slice.call(document.querySelectorAll(".distractor")).forEach(function(d){if(d.parentNode)d.parentNode.removeChild(d);});}
-  function qeCancel(){qeHolding=false;clearTimeout(qeTimeout);clearInterval(qeDistTimer);qeClearFlashes();}
+  function qeCancel(){qeHolding=false;clearTimeout(qeTimeout);clearTimeout(qeDistTimer);qeClearFlashes();}
   function qeFinish(){qeCancel();$("qeRDone").textContent=qeDone+" / "+qeHolds.length;$("qeRBreaks").textContent=qeBreaks;
     $("qeRecap").textContent=qeBreaks===0?"Clean set — every hold steady to the end.":"Steady wins. Fewer breaks next time.";show("quietResults");}
   (function(){var st=$("qeStage");
@@ -591,8 +666,62 @@
     st.addEventListener("pointerup",function(){if(qeHolding)qeBreak();});
     st.addEventListener("pointercancel",function(){if(qeHolding)qeBreak();});
   })();
-  $("quietBegin").addEventListener("click",qeStartGame);$("quietAgain").addEventListener("click",qeStartGame);
+  $("quietBegin").addEventListener("click",function(){ensureAudio();qeStartGame();});
+  $("quietAgain").addEventListener("click",function(){ensureAudio();qeStartGame();});
   document.querySelector("[data-quiet-end]").addEventListener("click",function(){qeDone?qeFinish():show("quietStart");});
+
+  /* =============== REACTION =============== */
+  var rxLen=20,rxI=0,rxRec=[],rxState="idle",rxOnset=0,rxMod=null,
+      rxStimT=null,rxTimeoutT=null,rxGapT=null,rxActive=false;
+  seg($("rxLen"),function(b){rxLen=parseInt(b.dataset.n,10);});
+  function reactStart(){ensureAudio();rxActive=true;rxI=0;rxRec=[];$("rxTot").textContent=rxLen;
+    $("rxProg").style.width="0%";show("reactGame");rxLight(false);rxNext();}
+  function rxLight(on){$("rxLeft").classList.toggle("lit",!!on);}
+  function rxClearTimers(){clearTimeout(rxStimT);clearTimeout(rxTimeoutT);clearTimeout(rxGapT);}
+  function rxNext(){if(!rxActive)return;if(rxI>=rxLen){reactFinish();return;}
+    $("rxCur").textContent=rxI;$("rxProg").style.width=(rxI/rxLen*100)+"%";
+    rxState="wait";rxLight(false);$("rxStatus").textContent="Wait…";$("rxStatus").style.color="var(--muted)";
+    rxStimT=setTimeout(rxFire,900+Math.random()*2200);}
+  function rxFire(){if(!rxActive)return;rxMod=Math.random()<0.5?"visual":"audio";rxState="go";rxOnset=performance.now();
+    if(rxMod==="visual"){rxLight(true);$("rxStatus").textContent="";}
+    else{$("rxStatus").textContent="♪";$("rxStatus").style.color="var(--accent)";rxBeepStim();}
+    rxTimeoutT=setTimeout(rxMiss,1800);}
+  function rxBeepStim(){try{ensureAudio();beep(820,0.16,0.22);}catch(e){}}
+  function rxRespond(side){if(!rxActive)return;
+    if(rxState==="wait"){rxState="dead";rxClearTimers();rxRec.push({type:"false"});
+      rxFeedback(side,false);$("rxStatus").textContent="Too early";$("rxStatus").style.color="var(--c-red)";rxGap();return;}
+    if(rxState==="go"){var rt=performance.now()-rxOnset,correct=(rxMod==="visual")?(side==="left"):(side==="right");
+      rxState="dead";rxClearTimers();rxLight(false);rxRec.push({mod:rxMod,rt:rt,ok:correct});
+      rxFeedback(side,correct);$("rxStatus").textContent=correct?Math.round(rt)+" ms":"Wrong side";
+      $("rxStatus").style.color=correct?"var(--accent)":"var(--c-red)";rxGap();return;}}
+  function rxMiss(){if(rxState!=="go")return;rxState="dead";rxClearTimers();rxLight(false);
+    rxRec.push({miss:true});$("rxStatus").textContent="Too slow";$("rxStatus").style.color="var(--c-red)";rxGap();}
+  function rxGap(){rxGapT=setTimeout(function(){rxI++;rxNext();},700);}
+  function rxFeedback(side,ok){var b=$(side==="left"?"rxLeft":"rxRight");if(!b)return;
+    b.classList.add(ok?"flash-ok":"flash-no");setTimeout(function(){b.classList.remove("flash-ok","flash-no");},320);}
+  function reactStop(){rxActive=false;rxClearTimers();rxLight(false);}
+  function reactFinish(){rxActive=false;rxClearTimers();$("rxProg").style.width="100%";
+    var ok=rxRec.filter(function(r){return r.ok;});
+    var answered=rxRec.filter(function(r){return r.mod;});
+    var acc=answered.length?Math.round(ok.length/answered.length*100):0;
+    var vis=ok.filter(function(r){return r.mod==="visual";}).map(function(r){return r.rt;});
+    var aud=ok.filter(function(r){return r.mod==="audio";}).map(function(r){return r.rt;});
+    var vRT=mean(vis),aRT=mean(aud),avg=mean(ok.map(function(r){return r.rt;}));
+    var falses=rxRec.filter(function(r){return r.type==="false";}).length;
+    var miss=rxRec.filter(function(r){return r.miss;}).length;
+    $("rxAvg").innerHTML=(avg?Math.round(avg):"—")+'<span class="u">ms</span>';
+    $("rxAcc").textContent=acc+"%";
+    $("rxVis").textContent=vRT?Math.round(vRT)+" ms":"—";
+    $("rxAud").textContent=aRT?Math.round(aRT)+" ms":"—";
+    var mx=Math.max(vRT,aRT,1);
+    $("rxVisBar").style.width=(vRT/mx*100)+"%";$("rxAudBar").style.width=(aRT/mx*100)+"%";
+    $("rxErr").textContent=falses+" · "+miss;show("reactResults");}
+  $("rxLeft").addEventListener("click",function(){rxRespond("left");});
+  $("rxRight").addEventListener("click",function(){rxRespond("right");});
+  document.addEventListener("keydown",function(e){if(!$("reactGame").classList.contains("active"))return;
+    var k=e.key.toLowerCase();if(k==="arrowleft"||k==="f"||k==="a")rxRespond("left");
+    else if(k==="arrowright"||k==="j"||k==="l")rxRespond("right");});
+  $("reactBegin").addEventListener("click",reactStart);$("reactAgain").addEventListener("click",reactStart);
 
   /* =============== BREATHING =============== */
   var brPattern="box",brDur=120;
