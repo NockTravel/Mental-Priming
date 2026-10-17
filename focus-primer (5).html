@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Focus Primer</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#171c24; --panel-2:#1f2630; --line:#2b333f;
+    --text:#eef2f7; --muted:#9aa6b4; --accent:#5ad1a6;
+    --c-red:#e5484d; --c-green:#43c463; --c-blue:#4a8df0; --c-yellow:#f5c518;
+    --gold:#f5c518;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;display:flex;flex-direction:column;min-height:100%;min-height:100dvh}
+  .wrap{width:100%;max-width:560px;margin:0 auto;
+    padding:24px 20px calc(24px + env(safe-area-inset-bottom));flex:1;display:flex;flex-direction:column}
+  .screen{display:none;flex:1;flex-direction:column}
+  .screen.active{display:flex}
+
+  h1{font-size:1.5rem;font-weight:650;letter-spacing:-.01em;margin:0 0 6px}
+  .tag{color:var(--accent);font-weight:600;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px}
+  .lead{color:var(--muted);line-height:1.55;margin:0 0 20px;font-size:.98rem}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px}
+  .card h2{font-size:.78rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 12px;font-weight:600}
+  .rule{display:flex;gap:10px;align-items:flex-start;margin:0 0 10px;font-size:.95rem;line-height:1.45}
+  .rule:last-child{margin-bottom:0}
+  .rule .n{color:var(--accent);font-weight:700;flex:none}
+  .demo{display:inline-block;font-weight:800}
+  .hint{color:var(--muted);font-size:.85rem;line-height:1.45;margin:0}
+
+  .seg{display:flex;gap:8px;margin-top:4px;flex-wrap:wrap}
+  .seg button{flex:1 1 0;min-width:72px;background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
+    border-radius:11px;padding:11px 6px;font-size:.9rem;font-weight:600;cursor:pointer;transition:.12s}
+  .seg button .sub{display:block;font-size:.72rem;font-weight:500;opacity:.7;margin-top:2px}
+  .seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#07140f;font-weight:750}
+  .seg button[aria-pressed="true"] .sub,.seg button[aria-pressed="true"] .freq{color:#07140f;opacity:.72}
+
+  .btn-primary{width:100%;background:var(--accent);color:#07140f;border:none;border-radius:14px;padding:17px;
+    font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:auto;transition:.12s}
+  .btn-primary:active{transform:scale(.985)}
+  .btn-ghost{width:100%;background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:14px;
+    padding:15px;font-size:.98rem;font-weight:600;cursor:pointer;margin-top:10px}
+  .back{background:none;border:none;color:var(--muted);font-size:.9rem;cursor:pointer;padding:4px 0;margin-bottom:12px;align-self:flex-start}
+
+  /* ---- Menu ---- */
+  .sect{font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:20px 2px 10px}
+  .sect:first-of-type{margin-top:6px}
+  .tiles{display:flex;flex-direction:column;gap:12px}
+  .tile{text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;cursor:pointer;transition:.12s;color:var(--text)}
+  .tile:active{transform:scale(.99)}
+  .tile:hover{border-color:var(--accent)}
+  .tile .t{font-size:1.1rem;font-weight:700;margin-bottom:3px}
+  .tile .d{color:var(--muted);font-size:.88rem;line-height:1.4}
+  .tile .badge{display:inline-block;font-size:.66rem;letter-spacing:.05em;text-transform:uppercase;font-weight:700;
+    color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:2px 8px;margin-top:9px}
+
+  /* ---- shared game top ---- */
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:10px}
+  .count{color:var(--muted);font-size:.85rem;font-variant-numeric:tabular-nums}
+  .quit{background:none;border:none;color:var(--muted);font-size:.85rem;cursor:pointer;padding:4px}
+  .progress{height:4px;background:var(--panel-2);border-radius:99px;overflow:hidden;margin-bottom:12px}
+  .progress>i{display:block;height:100%;background:var(--accent);width:0;transition:width .2s}
+
+  /* ---- Stroop ---- */
+  .stage{flex:1;display:flex;align-items:center;justify-content:center;min-height:150px;user-select:none}
+  .stimulus{font-size:clamp(3.2rem,19vw,5.6rem);font-weight:800;letter-spacing:.01em}
+  .fixation{font-size:2.5rem;color:var(--muted);font-weight:400}
+  .pad{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:auto}
+  .ink{border:none;border-radius:14px;padding:26px 10px;font-size:1.05rem;font-weight:750;cursor:pointer;color:#07120d;position:relative;transition:transform .06s,filter .1s}
+  .ink:active{transform:scale(.97)}
+  .ink .key{position:absolute;top:8px;left:10px;font-size:.68rem;font-weight:700;opacity:.5}
+  .ink[data-c="red"]{background:var(--c-red);color:#fff}
+  .ink[data-c="green"]{background:var(--c-green)}
+  .ink[data-c="blue"]{background:var(--c-blue);color:#fff}
+  .ink[data-c="yellow"]{background:var(--c-yellow)}
+  .flash-ok{animation:ok .3s}
+  .flash-no{animation:no .3s}
+  @keyframes ok{0%{box-shadow:0 0 0 0 rgba(90,209,166,.6)}100%{box-shadow:0 0 0 14px rgba(90,209,166,0)}}
+  @keyframes no{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+
+  /* ---- Number grid ---- */
+  .ruleBanner{background:rgba(90,209,166,.12);border:1px solid rgba(90,209,166,.4);border-radius:12px;padding:12px 14px;margin-bottom:12px;text-align:center}
+  .ruleBanner .small{color:var(--muted);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
+  .ruleBanner .big{font-size:1.02rem;font-weight:700;line-height:1.3}
+  .board{display:grid;gap:6px;margin:0 auto;width:100%}
+  .cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:10px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text);cursor:pointer;font-size:1.15rem;transition:.08s;user-select:none}
+  .board.dense .cell{border-radius:7px;font-size:.78rem}
+  .cell:active{transform:scale(.94)}
+  .cell.done{background:var(--accent);border-color:var(--accent);color:#07140f;cursor:default}
+  .cell.err{animation:no .3s;border-color:var(--c-red)}
+
+  /* ---- Breathing ---- */
+  .breathStage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;position:relative}
+  .orb{width:min(62vw,240px);aspect-ratio:1;border-radius:50%;
+    background:radial-gradient(circle at 50% 40%, rgba(90,209,166,.55), rgba(90,209,166,.12) 70%);
+    border:2px solid rgba(90,209,166,.6);transform:scale(.45);
+    transition:transform linear;display:flex;align-items:center;justify-content:center}
+  .orbInner{text-align:center}
+  .orbPhase{font-size:1.3rem;font-weight:700}
+  .orbCount{font-size:2.4rem;font-weight:800;font-variant-numeric:tabular-nums;color:var(--text)}
+  .breathMeta{color:var(--muted);font-size:.9rem;text-align:center}
+
+  /* ---- Quiet eye ---- */
+  .qeStage{flex:1;position:relative;display:flex;align-items:center;justify-content:center;min-height:300px;
+    background:var(--panel);border:1px solid var(--line);border-radius:18px;overflow:hidden;touch-action:none;user-select:none}
+  .qeRingWrap{position:relative;width:150px;height:150px;display:flex;align-items:center;justify-content:center}
+  .qeRing{position:absolute;inset:0;transform:rotate(-90deg)}
+  .qeRing circle{fill:none;stroke-width:6}
+  .qeRing .bg{stroke:var(--line)}
+  .qeRing .fg{stroke:var(--gold);stroke-linecap:round;transition:stroke-dashoffset linear}
+  .qeDot{width:26px;height:26px;border-radius:50%;background:var(--gold);box-shadow:0 0 18px rgba(245,197,24,.6)}
+  .qeHintTxt{position:absolute;bottom:16px;left:0;right:0;text-align:center;color:var(--muted);font-size:.85rem;padding:0 16px}
+  .distractor{position:absolute;width:30px;height:30px;border-radius:50%;background:var(--c-red);opacity:.0;pointer-events:none;transition:opacity .12s}
+
+  /* ---- Imagery ---- */
+  .imgStage{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;min-height:220px}
+  .imgText{font-size:1.5rem;font-weight:600;line-height:1.5;max-width:30ch;transition:opacity .5s;opacity:1}
+  .imgText.fade{opacity:0}
+  .playRow{display:flex;gap:12px;margin-top:auto}
+  .playRow button{flex:1;background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:14px;padding:15px;font-size:.98rem;font-weight:600;cursor:pointer}
+
+  /* ---- Routine ---- */
+  .stepRow{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+  .stepRow input[type=text]{flex:1;background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:11px 12px;font-size:.95rem;font-family:inherit}
+  .stepRow input[type=number]{width:62px;background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:11px 8px;font-size:.95rem;text-align:center;font-family:inherit}
+  .stepRow .del{background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;padding:0 4px;flex:none}
+  .addStep{width:100%;background:transparent;border:1px dashed var(--line);color:var(--muted);border-radius:11px;padding:12px;font-size:.92rem;font-weight:600;cursor:pointer;margin-top:4px}
+  .unit{color:var(--muted);font-size:.8rem}
+  .routineRun{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px}
+  .routineLabel{font-size:1.9rem;font-weight:750;line-height:1.3;max-width:26ch}
+  .routineCount{font-size:4rem;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent)}
+  .routineNext{color:var(--muted);font-size:.95rem}
+
+  /* ---- Binaural ---- */
+  .warn{background:rgba(245,197,24,.1);border:1px solid rgba(245,197,24,.4);border-radius:12px;padding:12px 14px;color:var(--text);font-size:.88rem;line-height:1.45;margin-bottom:16px}
+  .bandRow{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px}
+  .bandRow .freq{color:var(--muted);font-size:.82rem;font-variant-numeric:tabular-nums}
+  .slider{width:100%;margin-top:6px;accent-color:var(--accent)}
+  .binStage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:160px}
+  .binWave{font-size:3rem;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+  .binState{color:var(--muted);font-size:.95rem}
+
+  /* ---- Results ---- */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .stat .k{color:var(--muted);font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px}
+  .stat .v{font-size:1.6rem;font-weight:750;font-variant-numeric:tabular-nums}
+  .stat .u{font-size:.85rem;color:var(--muted);font-weight:500;margin-left:3px}
+  .cmp{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+  .cmp h2{font-size:.78rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 4px;font-weight:600}
+  .cmp .note{color:var(--muted);font-size:.85rem;margin:0 0 16px;line-height:1.45}
+  .bar{margin-bottom:12px}
+  .bar .lab{display:flex;justify-content:space-between;font-size:.9rem;margin-bottom:6px}
+  .bar .lab b{font-weight:700;font-variant-numeric:tabular-nums}
+  .track{height:12px;background:var(--panel-2);border-radius:99px;overflow:hidden}
+  .track>i{display:block;height:100%;border-radius:99px;transition:width .5s}
+  .track.cong>i{background:var(--accent)}
+  .track.incong>i{background:var(--c-yellow)}
+  .interf{text-align:center;padding-top:6px;border-top:1px solid var(--line);margin-top:4px}
+  .interf .k{color:var(--muted);font-size:.85rem;margin-bottom:2px}
+  .interf .v{font-size:1.4rem;font-weight:750;font-variant-numeric:tabular-nums}
+  .recap{text-align:center;color:var(--muted);font-size:.9rem;margin-bottom:16px}
+  .footnote{color:var(--muted);font-size:.78rem;line-height:1.5;text-align:center;margin:18px 0 4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- MENU -->
+  <section id="menu" class="screen active">
+    <div class="tag">Pre-competition mental priming</div>
+    <h1>Focus Primer</h1>
+    <p class="lead">Short, evidence-informed routines to switch your head on before stepping to the line.</p>
+
+    <div class="sect">Attention drills</div>
+    <div class="tiles">
+      <button class="tile" data-go="stroopStart"><div class="t">Colour Match</div><div class="d">Tap the ink colour, not the word. Overrides the automatic read.</div></button>
+      <button class="tile" data-go="gridStart"><div class="t">Number Hunt</div><div class="d">Find numbers across a grid in sequence. Scanning, memory, speed.</div></button>
+      <button class="tile" data-go="quietStart"><div class="t">Quiet Eye</div><div class="d">Hold a steady, still gaze on the aim point and ignore distraction.</div></button>
+    </div>
+
+    <div class="sect">Calm &amp; rehearse</div>
+    <div class="tiles">
+      <button class="tile" data-go="breatheStart"><div class="t">Breathing Pacer</div><div class="d">Paced breathing to settle arousal and steady your hold.</div></button>
+      <button class="tile" data-go="imageryStart"><div class="t">Imagery</div><div class="d">Guided mental rehearsal of the shot, step by step.</div></button>
+      <button class="tile" data-go="routineStart"><div class="t">Pre-shot Routine</div><div class="d">Build your own shot routine, then let it pace you.</div></button>
+    </div>
+
+    <div class="sect">Ambient</div>
+    <div class="tiles">
+      <button class="tile" data-go="binauralStart"><div class="t">Binaural Beats</div><div class="d">Tonal background for warm-up. A preference tool — evidence is mixed.</div><span class="badge">Headphones · optional</span></button>
+    </div>
+    <p class="footnote">Host on GitHub Pages — no setup, works offline.</p>
+  </section>
+
+  <!-- ===================== COLOUR MATCH ===================== -->
+  <section id="stroopStart" class="screen">
+    <button class="back" data-go="menu">‹ Menu</button>
+    <div class="tag">Colour Match</div>
+    <h1>Tap the ink</h1>
+    <p class="lead">Words naming colours appear in a different ink colour. Tap the colour of the <b>ink</b> — not the word.</p>
+    <div class="card"><h2>How it works</h2>
+      <div class="rule"><span class="n">1</span><span>The word <span class="demo" style="color:var(--c-blue)">RED</span> is printed in blue — so you tap <b>blue</b>.</span></div>
+      <div class="rule"><span class="n">2</span><span>Go fast, but don't make mistakes.</span></div>
+      <div class="rule"><span class="n">3</span><span>At the end you'll see how much the mismatched cards slowed you down.</span></div>
+    </div>
+    <div class="card"><h2>Length</h2>
+      <div class="seg" id="stroopLen">
+        <button data-n="20" aria-pressed="false">Short<span class="sub">20 cards</span></button>
+        <button data-n="40" aria-pressed="true">Standard<span class="sub">40 cards</span></button>
+        <button data-n="60" aria-pressed="false">Long<span class="sub">60 cards</span></button>
+      </div>
+    </div>
+    <button class="btn-primary" id="stroopBegin">Begin</button>
+  </section>
+  <section id="stroopGame" class="screen">
+    <div class="topbar"><span class="count"><span id="sCur">0</span> / <span id="sTot">40</span></span><button class="quit" data-stroop-end>End</button></div>
+    <div class="progress"><i id="sProg"></i></div>
+    <div class="stage"><div class="stimulus fixation" id="stim">+</div></div>
+    <div class="pad" id="stroopPad">
+      <button class="ink" data-c="red"><span class="key">1</span>Red</button>
+      <button class="ink" data-c="green"><span class="key">2</span>Green</button>
+      <button class="ink" data-c="blue"><span class="key">3</span>Blue</button>
+      <button class="ink" data-c="yellow"><span class="key">4</span>Yellow</button>
+    </div>
+  </section>
+  <section id="stroopResults" class="screen">
+    <div class="tag">Colour Match · complete</div><h1 style="margin-bottom:18px">Your results</h1>
+    <div class="grid2">
+      <div class="stat"><div class="k">Accuracy</div><div class="v" id="rAcc">—</div></div>
+      <div class="stat"><div class="k">Avg response</div><div class="v" id="rAvg">—<span class="u">ms</span></div></div>
+    </div>
+    <div class="cmp"><h2>Interference effect</h2>
+      <p class="note">How much slower you were when the word and the ink disagreed. A smaller gap means tighter focus.</p>
+      <div class="bar"><div class="lab"><span>Matched cards</span><b id="rCong">—</b></div><div class="track cong"><i id="rCongBar"></i></div></div>
+      <div class="bar"><div class="lab"><span>Mismatched cards</span><b id="rIncong">—</b></div><div class="track incong"><i id="rIncongBar"></i></div></div>
+      <div class="interf"><div class="k">Stroop interference</div><div class="v" id="rInterf">—</div></div>
+    </div>
+    <button class="btn-primary" id="stroopAgain">Go again</button>
+    <button class="btn-ghost" data-go="menu">Back to menu</button>
+  </section>
+
+  <!-- ===================== NUMBER HUNT ===================== -->
+  <section id="gridStart" class="screen">
+    <button class="back" data-go="menu">‹ Menu</button>
+    <div class="tag">Number Hunt</div><h1>Scan &amp; sequence</h1>
+    <p class="lead">Numbers are scattered across a grid. Tap them in the right sequence as fast as you can.</p>
+    <div class="card"><h2>How it works</h2>
+      <div class="rule"><span class="n">1</span><span>You choose the range and rule mode. Timer starts on your first tap.</span></div>
+      <div class="rule"><span class="n">2</span><span>Tap only the numbers the rule asks for, in order. A wrong tap flashes red.</span></div>
+    </div>
+    <div class="card"><h2>Range</h2>
+      <div class="seg" id="gridRange">
+        <button data-n="20" aria-pressed="true">1–20<span class="sub">4 × 5</span></button>
+        <button data-n="30" aria-pressed="false">1–30<span class="sub">5 × 6</span></button>
+        <button data-n="100" aria-pressed="false">1–100<span class="sub">10 × 10</span></button>
+      </div>
+    </div>
+    <div class="card"><h2>Rule</h2>
+      <div class="seg" id="gridMode">
+        <button data-m="random" aria-pressed="true">Random<span class="sub">any rule</span></button>
+        <button data-m="sequence" aria-pressed="false">Full sequence<span class="sub">up / down only</span></button>
+      </div>
+      <p class="hint" style="margin-top:10px">The exact rule is drawn at random each round and shown before you start.</p>
+    </div>
+    <button class="btn-primary" id="gridBegin">Begin</button>
+  </section>
+  <section id="gridGame" class="screen">
+    <div class="topbar"><span class="count"><span id="gDone">0</span> / <span id="gTgt">0</span> · <span id="gTime">0.0s</span></span><button class="quit" data-go="gridStart">End</button></div>
+    <div class="ruleBanner"><div class="small">This round</div><div class="big" id="gRule">—</div></div>
+    <div class="board" id="board"></div>
+  </section>
+  <section id="gridResults" class="screen">
+    <div class="tag">Number Hunt · complete</div><h1 style="margin-bottom:18px">Your results</h1>
+    <div class="grid2">
+      <div class="stat"><div class="k">Time</div><div class="v" id="gRTime">—<span class="u">s</span></div></div>
+      <div class="stat"><div class="k">Wrong taps</div><div class="v" id="gRErr">—</div></div>
+    </div>
+    <p class="recap" id="gRecap">—</p>
+    <button class="btn-primary" id="gridAgain">New round</button>
+    <button class="btn-ghost" id="gridChange">Change range</button>
+    <button class="btn-ghost" data-go="menu">Back to menu</button>
+  </section>
+
+  <!-- ===================== QUIET EYE ===================== -->
+  <section id="quietStart" class="screen">
+    <button class="back" data-go="menu">‹ Menu</button>
+    <div class="tag">Quiet Eye</div><h1>Hold the gaze</h1>
+    <p class="lead">A long, stable final fixation on the aim point is one of the strongest predictors of accuracy in aiming sports — and it's trainable.</p>
+    <div class="card"><h2>How it works</h2>
+      <div class="rule"><span class="n">1</span><span>Press and hold on the gold dot, and keep your eyes locked on it.</span></div>
+      <div class="rule"><span class="n">2</span><span>Keep your finger still — drifting or lifting early breaks the hold.</span></div>
+      <div class="rule"><span class="n">3</span><span>Red flashes will try to pull your eye. Ignore them. Each rep holds a little longer.</span></div>
+    </div>
+    <div class="card"><h2>Distraction</h2>
+      <div class="seg" id="qeDist">
+        <button data-d="0" aria-pressed="false">Off<span class="sub">calm</span></button>
+        <button data-d="1" aria-pressed="true">On<span class="sub">flashes</span></button>
+      </div>
+    </div>
+    <button class="btn-primary" id="quietBegin">Begin</button>
+  </section>
+  <section id="quietGame" class="screen">
+    <div class="topbar"><span class="count">Rep <span id="qeRep">1</span> / <span id="qeReps">5</span> · hold <span id="qeTarget">3.0s</span></span><button class="quit" data-quiet-end>End</button></div>
+    <div class="qeStage" id="qeStage">
+      <div class="qeRingWrap">
+        <svg class="qeRing" viewBox="0 0 150 150"><circle class="bg" cx="75" cy="75" r="69"/><circle class="fg" id="qeFg" cx="75" cy="75" r="69"/></svg>
+        <div class="qeDot"></div>
+      </div>
+      <div class="qeHintTxt" id="qeHint">Press and hold the dot</div>
+    </div>
+  </section>
+  <section id="quietResults" class="screen">
+    <div class="tag">Quiet Eye · complete</div><h1 style="margin-bottom:18px">Your results</h1>
+    <div class="grid2">
+      <div class="stat"><div class="k">Reps held</div><div class="v" id="qeRDone">—</div></div>
+      <div class="stat"><div class="k">Breaks</div><div class="v" id="qeRBreaks">—</div></div>
+    </div>
+    <p class="recap" id="qeRecap">—</p>
+    <button class="btn-primary" id="quietAgain">Go again</button>
+    <button class="btn-ghost" data-go="menu">Back to menu</button>
+  </section>
+
+  <!-- ===================== BREATHING ===================== -->
+  <section id="breatheStart" class="screen">
+    <button class="back" data-go="menu">‹ Menu</button>
+    <div class="tag">Breathing Pacer</div><h1>Settle your system</h1>
+    <p class="lead">Follow the orb — expand on the in-breath, shrink on the out. Slow, paced breathing lowers arousal and steadies the hold.</p>
+    <div class="card"><h2>Pattern</h2>
+      <div class="seg" id="brPattern">
+        <button data-p="box" aria-pressed="true">Box<span class="sub">4-4-4-4</span></button>
+        <button data-p="res" aria-pressed="false">Resonance<span class="sub">5.5 in / out</span></button>
+        <button data-p="478" aria-pressed="false">4-7-8<span class="sub">relax</span></button>
+      </div>
+    </div>
+    <div class="card"><h2>Duration</h2>
+      <div class="seg" id="brDur">
+        <button data-s="60" aria-pressed="false">1 min</button>
+        <button data-s="120" aria-pressed="true">2 min</button>
+        <button data-s="180" aria-pressed="false">3 min</button>
+      </div>
+    </div>
+    <button class="btn-primary" id="breatheBegin">Begin</button>
+  </section>
+  <section id="breatheGame" class="screen">
+    <div class="topbar"><span class="count"><span id="brLeft">2:00</span> left</span><button class="quit" data-breathe-end>End</button></div>
+    <div class="breathStage">
+      <div class="orb" id="orb"><div class="orbInner"><div class="orbPhase" id="brPhase">Ready</div><div class="orbCount" id="brCount"></div></div></div>
+      <div class="breathMeta" id="brMeta">Breathe with the orb</div>
+    </div>
+  </section>
+
+  <!-- ===================== IMAGERY ===================== -->
+  <section id="imageryStart" class="screen">
+    <button class="back" data-go="menu">‹ Menu</button>
+    <div class="tag">Imagery</div><h1>Rehearse the shot</h1>
+    <p class="lead">Guided mental rehearsal. Read each cue, close your eyes if you like, and build the shot in your mind — the feel of it, not just the picture.</p>
+    <div class="card"><h2>Script</h2>
+      <div class="seg" id="imgScript">
+        <button data-k="shot" aria-pressed="true">Shot rehearsal<span class="sub">the full shot</span></button>
+        <button data-k="centre" aria-pressed="false">Centre &amp; settle<span class="sub">calm focus</span></button>
+      </div>
+    </div>
+    <div class="card" id="imgVoiceCard"><h2>Voice-over</h2>
+      <div class="seg" id="imgVoice">
+        <button data-v="1" aria-pressed="true">On<span class="sub">narrated</span></button>
+        <button data-v="0" aria-pressed="false">Off<span class="sub">read it</span></button>
+      </div>
+      <p class="hint" id="imgVoiceHint" style="margin-top:10px">Narrated by your device's built-in voice, so you can close your eyes. Cues advance as each line finishes.</p>
+    </div>
+    <button class="btn-primary" id="imageryBegin">Begin</button>
+  </section>
+  <section id="imageryGame" class="screen">
+    <div class="topbar"><span class="count"><span id="imgStep">1</span> / <span id="imgTot">1</span></span><button class="quit" data-go="imageryStart">End</button></div>
+    <div class="progress"><i id="imgProg"></i></div>
+    <div class="imgStage"><div class="imgText" id="imgText">—</div></div>
+    <div class="playRow">
+      <button id="imgPause">Pause</button>
+      <button id="imgSkip">Next ›</button>
+    </div>
+  </section>
+
+  <!-- ===================== ROUTINE ===================== -->
+  <section id="routineStart" class="screen">
+    <button class="back" data-go="menu">‹ Menu</button>
+    <div class="tag">Pre-shot Routine</div><h1>Build your routine</h1>
+    <p class="lead">Set the steps of your shot and how long each takes. Running it paces the rhythm so it's the same every arrow. Saved on this device.</p>
+    <div class="card"><h2>Steps</h2>
+      <div id="routineList"></div>
+      <button class="addStep" id="addStep">+ Add step</button>
+    </div>
+    <button class="btn-primary" id="routineBegin">Run routine</button>
+    <button class="btn-ghost" id="routineReset">Reset to default</button>
+  </section>
+  <section id="routineGame" class="screen">
+    <div class="topbar"><span class="count">Step <span id="rnStep">1</span> / <span id="rnTot">1</span></span><button class="quit" data-routine-end>End</button></div>
+    <div class="progress"><i id="rnProg"></i></div>
+    <div class="routineRun">
+      <div class="routineCount" id="rnCount">3</div>
+      <div class="routineLabel" id="rnLabel">—</div>
+      <div class="routineNext" id="rnNext"></div>
+    </div>
+  </section>
+
+  <!-- ===================== BINAURAL ===================== -->
+  <section id="binauralStart" class="screen">
+    <button class="back" data-go="menu">‹ Menu</button>
+    <div class="tag">Binaural Beats</div><h1>Tonal background</h1>
+    <div class="warn"><b>Use stereo headphones</b> — the effect relies on a different tone in each ear and won't work on a speaker. Keep the volume low. This is a preference tool; the research evidence for performance benefit is mixed, so treat it as ambient warm-up, not a core drill.</div>
+    <div class="card"><h2>Preset</h2>
+      <div class="seg" id="binPreset" style="flex-direction:column">
+        <button data-k="theta" aria-pressed="false"><div class="bandRow"><span>Deep calm</span><span class="freq">θ · 4 Hz</span></div></button>
+        <button data-k="alpha" aria-pressed="true"><div class="bandRow"><span>Relaxed focus</span><span class="freq">α · 10 Hz</span></div></button>
+        <button data-k="beta" aria-pressed="false"><div class="bandRow"><span>Alert / activate</span><span class="freq">β · 18 Hz</span></div></button>
+      </div>
+    </div>
+    <div class="card"><h2>Volume</h2>
+      <input type="range" class="slider" id="binVol" min="0" max="100" value="35">
+      <h2 style="margin-top:16px">Auto-stop</h2>
+      <div class="seg" id="binTimer">
+        <button data-m="0" aria-pressed="true">Off</button>
+        <button data-m="5" aria-pressed="false">5 min</button>
+        <button data-m="10" aria-pressed="false">10 min</button>
+      </div>
+    </div>
+    <button class="btn-primary" id="binauralBegin">Open player</button>
+  </section>
+  <section id="binauralGame" class="screen">
+    <button class="back" data-go="binauralStart" id="binBack">‹ Settings</button>
+    <div class="tag">Binaural Beats</div>
+    <div class="binStage">
+      <div class="binWave" id="binWave">10 Hz</div>
+      <div class="binState" id="binBand">Relaxed focus · alpha</div>
+      <div class="binState" id="binElapsed">Stopped</div>
+    </div>
+    <button class="btn-primary" id="binToggle">Play</button>
+    <button class="btn-ghost" data-go="menu">Back to menu</button>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $=function(id){return document.getElementById(id);};
+  var rnd=function(a){return a[Math.floor(Math.random()*a.length)];};
+  function mean(a){return a.length?a.reduce(function(x,y){return x+y;},0)/a.length:0;}
+  function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+  function seg(el,set){el.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;
+    [].forEach.call(this.children,function(c){c.setAttribute("aria-pressed","false");});b.setAttribute("aria-pressed","true");set(b);});}
+
+  var SCREENS=["menu","stroopStart","stroopGame","stroopResults","gridStart","gridGame","gridResults",
+    "quietStart","quietGame","quietResults","breatheStart","breatheGame","imageryStart","imageryGame",
+    "routineStart","routineGame","binauralStart","binauralGame"];
+  function show(s){ SCREENS.forEach(function(x){$(x).classList.toggle("active",x===s);}); onLeave(s); }
+  function onLeave(to){ // stop anything running when navigating
+    if(to!=="breatheGame") stopBreathe();
+    if(to!=="imageryGame") stopImagery();
+    if(to!=="routineGame") stopRoutine();
+    if(to!=="binauralGame"&&to!=="binauralStart") stopBinaural();
+    if(to!=="quietGame") qeCancel();
+  }
+  document.addEventListener("click",function(e){var t=e.target.closest("[data-go]");if(t)show(t.getAttribute("data-go"));});
+
+  // shared short tone (for routine beeps)
+  var AC=null;
+  function beep(freq,dur,vol){
+    try{
+      AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+      if(AC.state==="suspended")AC.resume();
+      var o=AC.createOscillator(),g=AC.createGain();
+      o.frequency.value=freq||660;o.type="sine";
+      g.gain.value=0;o.connect(g);g.connect(AC.destination);
+      var t=AC.currentTime;o.start(t);
+      g.gain.linearRampToValueAtTime(vol||0.12,t+0.01);
+      g.gain.linearRampToValueAtTime(0,t+(dur||0.15));
+      o.stop(t+(dur||0.15)+0.02);
+    }catch(e){}
+  }
+
+  /* =============== COLOUR MATCH =============== */
+  var COLORS=["red","green","blue","yellow"],LABEL={red:"RED",green:"GREEN",blue:"BLUE",yellow:"YELLOW"},
+      INK={red:"var(--c-red)",green:"var(--c-green)",blue:"var(--c-blue)",yellow:"var(--c-yellow)"},
+      KEYMAP={"1":"red","2":"green","3":"blue","4":"yellow","r":"red","g":"green","b":"blue","y":"yellow"};
+  var sTotal=40,sIncong=0.65,sTrials=[],sIdx=0,sRec=[],sStart=0,sAwait=false,sLock=false;
+  seg($("stroopLen"),function(b){sTotal=parseInt(b.dataset.n,10);});
+  function stroopStart(){sTrials=[];for(var i=0;i<sTotal;i++){var w=rnd(COLORS),ink;
+    if(Math.random()<sIncong){do{ink=rnd(COLORS);}while(ink===w);}else{ink=w;}sTrials.push({word:w,ink:ink,cong:ink===w});}
+    sIdx=0;sRec=[];$("sTot").textContent=sTotal;show("stroopGame");stroopNext();}
+  function stroopNext(){if(sIdx>=sTrials.length){stroopFinish();return;}
+    $("sCur").textContent=sIdx;$("sProg").style.width=(sIdx/sTrials.length*100)+"%";
+    var s=$("stim");s.className="stimulus fixation";s.textContent="+";s.style.color="var(--muted)";sAwait=false;
+    setTimeout(function(){var t=sTrials[sIdx];s.className="stimulus";s.textContent=LABEL[t.word];s.style.color=INK[t.ink];sStart=performance.now();sAwait=true;},450);}
+  function stroopRespond(c,btn){if(!sAwait||sLock)return;var t=sTrials[sIdx],rt=performance.now()-sStart,ok=c===t.ink;
+    sRec.push({cong:t.cong,ok:ok,rt:rt});sAwait=false;
+    if(btn){btn.classList.add(ok?"flash-ok":"flash-no");setTimeout(function(){btn.classList.remove("flash-ok","flash-no");},320);}
+    sLock=true;setTimeout(function(){sLock=false;sIdx++;stroopNext();},ok?160:420);}
+  $("stroopPad").addEventListener("click",function(e){var b=e.target.closest(".ink");if(b)stroopRespond(b.dataset.c,b);});
+  document.addEventListener("keydown",function(e){if(!$("stroopGame").classList.contains("active"))return;
+    var c=KEYMAP[e.key.toLowerCase()];if(c)stroopRespond(c,document.querySelector('.ink[data-c="'+c+'"]'));});
+  function stroopFinish(){$("sProg").style.width="100%";var ok=sRec.filter(function(r){return r.ok;});
+    var acc=sRec.length?Math.round(ok.length/sRec.length*100):0;
+    var cRT=mean(ok.filter(function(r){return r.cong;}).map(function(r){return r.rt;}));
+    var iRT=mean(ok.filter(function(r){return !r.cong;}).map(function(r){return r.rt;}));
+    var aRT=mean(ok.map(function(r){return r.rt;})),intf=(cRT&&iRT)?iRT-cRT:0,mx=Math.max(cRT,iRT,1);
+    $("rAcc").textContent=acc+"%";$("rAvg").innerHTML=Math.round(aRT)+'<span class="u">ms</span>';
+    $("rCong").textContent=cRT?Math.round(cRT)+" ms":"—";$("rIncong").textContent=iRT?Math.round(iRT)+" ms":"—";
+    $("rInterf").textContent=intf?"+"+Math.round(intf)+" ms":"—";
+    $("rCongBar").style.width=(cRT/mx*100)+"%";$("rIncongBar").style.width=(iRT/mx*100)+"%";show("stroopResults");}
+  $("stroopBegin").addEventListener("click",stroopStart);$("stroopAgain").addEventListener("click",stroopStart);
+  document.querySelector("[data-stroop-end]").addEventListener("click",function(){sRec.length?stroopFinish():show("stroopStart");});
+
+  /* =============== NUMBER HUNT =============== */
+  var gRange=20,gMode="random",gTargets=[],gTargetIdx=0,gErrors=0,gStartTs=0,gTimer=null,gRunning=false;
+  var RULES=[
+    {id:"asc",build:function(n){var a=[];for(var i=1;i<=n;i++)a.push(i);return a;},text:function(n){return "Tap every number in order — 1 to "+n;}},
+    {id:"desc",build:function(n){var a=[];for(var i=n;i>=1;i--)a.push(i);return a;},text:function(n){return "Tap every number in reverse — "+n+" down to 1";}},
+    {id:"even",build:function(n){var a=[];for(var i=2;i<=n;i+=2)a.push(i);return a;},text:function(){return "Tap the even numbers in order — 2, 4, 6 …";}},
+    {id:"mult3",build:function(n){var a=[];for(var i=3;i<=n;i+=3)a.push(i);return a;},text:function(){return "Tap the multiples of 3 in order — 3, 6, 9 …";}},
+    {id:"mult5",build:function(n){var a=[];for(var i=5;i<=n;i+=5)a.push(i);return a;},text:function(){return "Tap the multiples of 5 in order — 5, 10, 15 …";}}
+  ];
+  seg($("gridRange"),function(b){gRange=parseInt(b.dataset.n,10);});
+  seg($("gridMode"),function(b){gMode=b.dataset.m;});
+  function gridStart(){
+    var pool=gMode==="sequence"?RULES.filter(function(r){return r.id==="asc"||r.id==="desc";}):RULES;
+    var rule=rnd(pool);gTargets=rule.build(gRange);gTargetIdx=0;gErrors=0;gRunning=false;
+    $("gRule").textContent=rule.text(gRange);$("gTgt").textContent=gTargets.length;$("gDone").textContent=0;$("gTime").textContent="0.0s";
+    var cols=Math.round(Math.sqrt(gRange)),board=$("board");board.innerHTML="";
+    board.style.gridTemplateColumns="repeat("+cols+",1fr)";board.classList.toggle("dense",cols>=8);
+    shuffle((function(){var a=[];for(var i=1;i<=gRange;i++)a.push(i);return a;})()).forEach(function(v){
+      var c=document.createElement("button");c.className="cell";c.textContent=v;c.dataset.v=v;board.appendChild(c);});
+    show("gridGame");}
+  function gTick(){$("gTime").textContent=((performance.now()-gStartTs)/1000).toFixed(1)+"s";}
+  function gridTap(cell){var v=parseInt(cell.dataset.v,10);if(cell.classList.contains("done"))return;
+    if(!gRunning){gRunning=true;gStartTs=performance.now();gTimer=setInterval(gTick,100);}
+    if(v===gTargets[gTargetIdx]){cell.classList.add("done");gTargetIdx++;$("gDone").textContent=gTargetIdx;
+      if(gTargetIdx>=gTargets.length)gridFinish();}
+    else{gErrors++;cell.classList.add("err");setTimeout(function(){cell.classList.remove("err");},320);}}
+  $("board").addEventListener("click",function(e){var c=e.target.closest(".cell");if(c)gridTap(c);});
+  function gridFinish(){clearInterval(gTimer);var s=(performance.now()-gStartTs)/1000;
+    $("gRTime").innerHTML=s.toFixed(1)+'<span class="u">s</span>';$("gRErr").textContent=gErrors;
+    $("gRecap").textContent="1–"+gRange+" · "+$("gRule").textContent.toLowerCase();show("gridResults");}
+  $("gridBegin").addEventListener("click",gridStart);$("gridAgain").addEventListener("click",gridStart);
+  $("gridChange").addEventListener("click",function(){show("gridStart");});
+
+  /* =============== QUIET EYE =============== */
+  var qeHolds=[3,4,5,6,8],qeRepI=0,qeBreaks=0,qeDone=0,qeDist=1,qeTimeout=null,qeDistTimer=null,
+      qeHolding=false,qeStartX=0,qeStartY=0,qeMoveThresh=28;
+  var QEC=2*Math.PI*69;
+  (function(){var fg=$("qeFg");fg.style.strokeDasharray=QEC;fg.style.strokeDashoffset=QEC;})();
+  seg($("qeDist"),function(b){qeDist=parseInt(b.dataset.d,10);});
+  function qeStartGame(){qeRepI=0;qeBreaks=0;qeDone=0;$("qeReps").textContent=qeHolds.length;qeSetRep();show("quietGame");}
+  function qeSetRep(){$("qeRep").textContent=qeRepI+1;$("qeTarget").textContent=qeHolds[qeRepI].toFixed(1)+"s";
+    $("qeHint").textContent="Press and hold the dot";qeResetRing();}
+  function qeResetRing(){var fg=$("qeFg");fg.style.transition="none";fg.style.strokeDashoffset=QEC;void fg.offsetWidth;}
+  function qeBeginHold(x,y){if(qeHolding)return;qeHolding=true;qeStartX=x;qeStartY=y;
+    $("qeHint").textContent="Hold still — eyes on the dot";
+    var dur=qeHolds[qeRepI],fg=$("qeFg");
+    fg.style.transition="stroke-dashoffset "+dur+"s linear";void fg.offsetWidth;fg.style.strokeDashoffset=0;
+    qeTimeout=setTimeout(qeRepDone,dur*1000);
+    if(qeDist)qeDistTimer=setInterval(qeFlash,700+Math.random()*600);}
+  function qeBreak(){if(!qeHolding)return;qeHolding=false;clearTimeout(qeTimeout);clearInterval(qeDistTimer);
+    qeBreaks++;qeResetRing();$("qeHint").textContent="Broke — reset. Press and hold again";qeClearFlashes();}
+  function qeRepDone(){qeHolding=false;clearInterval(qeDistTimer);qeClearFlashes();qeDone++;qeRepI++;
+    if(qeRepI>=qeHolds.length){qeFinish();return;}
+    $("qeHint").textContent="Held. Next rep ready";setTimeout(qeSetRep,500);}
+  function qeFlash(){var st=$("qeStage"),d=document.createElement("div");d.className="distractor";
+    var pad=10,w=st.clientWidth,h=st.clientHeight;
+    d.style.left=(pad+Math.random()*(w-pad*2-30))+"px";d.style.top=(pad+Math.random()*(h-pad*2-30))+"px";
+    st.appendChild(d);requestAnimationFrame(function(){d.style.opacity=".85";});
+    setTimeout(function(){d.style.opacity="0";setTimeout(function(){if(d.parentNode)d.parentNode.removeChild(d);},200);},400);}
+  function qeClearFlashes(){[].slice.call(document.querySelectorAll(".distractor")).forEach(function(d){if(d.parentNode)d.parentNode.removeChild(d);});}
+  function qeCancel(){qeHolding=false;clearTimeout(qeTimeout);clearInterval(qeDistTimer);qeClearFlashes();}
+  function qeFinish(){qeCancel();$("qeRDone").textContent=qeDone+" / "+qeHolds.length;$("qeRBreaks").textContent=qeBreaks;
+    $("qeRecap").textContent=qeBreaks===0?"Clean set — every hold steady to the end.":"Steady wins. Fewer breaks next time.";show("quietResults");}
+  (function(){var st=$("qeStage");
+    st.addEventListener("pointerdown",function(e){st.setPointerCapture&&st.setPointerCapture(e.pointerId);qeBeginHold(e.clientX,e.clientY);});
+    st.addEventListener("pointermove",function(e){if(!qeHolding)return;
+      if(Math.hypot(e.clientX-qeStartX,e.clientY-qeStartY)>qeMoveThresh)qeBreak();});
+    st.addEventListener("pointerup",function(){if(qeHolding)qeBreak();});
+    st.addEventListener("pointercancel",function(){if(qeHolding)qeBreak();});
+  })();
+  $("quietBegin").addEventListener("click",qeStartGame);$("quietAgain").addEventListener("click",qeStartGame);
+  document.querySelector("[data-quiet-end]").addEventListener("click",function(){qeDone?qeFinish():show("quietStart");});
+
+  /* =============== BREATHING =============== */
+  var brPattern="box",brDur=120;
+  var PATTERNS={
+    box:[["Inhale",4,1],["Hold",4,1],["Exhale",4,.45],["Hold",4,.45]],
+    res:[["Inhale",5.5,1],["Exhale",5.5,.45]],
+    "478":[["Inhale",4,1],["Hold",7,1],["Exhale",8,.45]]
+  };
+  var brPhaseI=0,brEndTs=0,brPhaseTimer=null,brCountTimer=null,brLeftTimer=null,brActive=false;
+  seg($("brPattern"),function(b){brPattern=b.dataset.p;});
+  seg($("brDur"),function(b){brDur=parseInt(b.dataset.s,10);});
+  function fmtClock(s){s=Math.max(0,Math.round(s));return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2);}
+  function breatheStart(){brActive=true;brPhaseI=0;brEndTs=performance.now()+brDur*1000;
+    $("brMeta").textContent=({box:"Box breathing · 4-4-4-4",res:"Resonance · ~5.5 breaths/min","478":"4-7-8 · relaxing"})[brPattern];
+    show("breatheGame");brLeftTimer=setInterval(function(){$("brLeft").textContent=fmtClock((brEndTs-performance.now())/1000);},250);
+    brRunPhase();}
+  function brRunPhase(){if(!brActive)return;
+    if(performance.now()>=brEndTs){breatheDone();return;}
+    var seq=PATTERNS[brPattern],ph=seq[brPhaseI%seq.length];
+    var name=ph[0],secs=ph[1],scale=ph[2];
+    $("brPhase").textContent=name;
+    var orb=$("orb");orb.style.transition="transform "+secs+"s ease-in-out";orb.style.transform="scale("+scale+")";
+    var remain=secs;$("brCount").textContent=Math.ceil(remain);
+    clearInterval(brCountTimer);brCountTimer=setInterval(function(){remain-=0.1;$("brCount").textContent=Math.max(1,Math.ceil(remain));},100);
+    brPhaseTimer=setTimeout(function(){clearInterval(brCountTimer);brPhaseI++;brRunPhase();},secs*1000);}
+  function breatheDone(){stopBreathe();$("brPhase").textContent="Done";$("brCount").textContent="";
+    $("brMeta").textContent="Settled. Step up when you're ready.";$("orb").style.transform="scale(.6)";}
+  function stopBreathe(){brActive=false;clearTimeout(brPhaseTimer);clearInterval(brCountTimer);clearInterval(brLeftTimer);}
+  $("breatheBegin").addEventListener("click",breatheStart);
+  document.querySelector("[data-breathe-end]").addEventListener("click",function(){show("breatheStart");});
+
+  /* =============== IMAGERY =============== */
+  var SCRIPTS={
+    shot:[["Stand tall at the line. Feel your feet settle and your weight balance.",7],
+      ["Take one slow breath. Let your shoulders drop.",7],
+      ["Nock the arrow. Feel the click, set your hook.",6],
+      ["Raise and set. Bow shoulder down and in.",6],
+      ["Draw smoothly to your anchor. Feel it land in exactly the same place.",8],
+      ["Settle the sight. Let it float on gold — soft, not forced.",8],
+      ["Keep expanding. The release surprises you. Clean.",7],
+      ["Hold your follow-through. Watch the arrow in. See it land where you aimed.",8],
+      ["That's the shot. You can repeat it, arrow after arrow.",6]],
+    centre:[["Close your eyes. Notice three slow breaths, in and out.",9],
+      ["Let the noise around you fade to the background.",7],
+      ["Feel the ground through your feet. Steady and still.",7],
+      ["Picture a calm, quiet focus settling behind your eyes.",8],
+      ["This is your range. You've done the work. You're ready.",7],
+      ["Open your eyes. Carry that quiet to the line.",6]]
+  };
+  var imgScript="shot",imgVoiceOn=true,imgSteps=[],imgI=0,imgTimer=null,imgPaused=false,imgRemain=0,imgLastStart=0;
+  var TTS=("speechSynthesis" in window)?window.speechSynthesis:null;
+  var imgVoice=null;
+  // ranked across devices: Chrome lands on Google UK, iPhone/Mac on a good Apple voice
+  var VOICE_PREFS=["google uk english female","google uk english male","google australian","google us english",
+    "microsoft natasha","microsoft william","daniel","karen","samantha","serena","moira","tessa"];
+  function imgPickVoice(){if(!TTS)return;var vs=TTS.getVoices()||[];if(!vs.length)return;
+    function byName(frag){for(var i=0;i<vs.length;i++){if((vs[i].name||"").toLowerCase().indexOf(frag)>-1)return vs[i];}return null;}
+    for(var p=0;p<VOICE_PREFS.length;p++){var v=byName(VOICE_PREFS[p]);if(v){imgVoice=v;return;}}
+    var hints=["natural","neural","online","enhanced","premium","siri","google"];
+    for(var h=0;h<hints.length;h++){var v2=byName(hints[h]);if(v2){imgVoice=v2;return;}}
+    var langs=["en-au","en-gb","en-us","en"];
+    for(var q=0;q<langs.length;q++){for(var j=0;j<vs.length;j++){if((vs[j].lang||"").toLowerCase().indexOf(langs[q])===0){imgVoice=vs[j];return;}}}
+    imgVoice=vs[0];}
+  if(TTS){imgPickVoice();TTS.onvoiceschanged=imgPickVoice;}
+  if(!TTS){imgVoiceOn=false;var vc=$("imgVoiceCard");if(vc){$("imgVoice").style.display="none";
+    $("imgVoiceHint").textContent="This device has no built-in narration, so cues advance on a timer — keep your eyes on the screen.";}}
+  seg($("imgScript"),function(b){imgScript=b.dataset.k;});
+  seg($("imgVoice"),function(b){imgVoiceOn=b.dataset.v==="1";});
+  function imageryStart(){imgSteps=SCRIPTS[imgScript];imgI=0;imgPaused=false;$("imgPause").textContent="Pause";
+    $("imgTot").textContent=imgSteps.length;show("imageryGame");imgShow();}
+  function imgShow(){if(imgI>=imgSteps.length){imgDone();return;}
+    $("imgStep").textContent=imgI+1;$("imgProg").style.width=(imgI/imgSteps.length*100)+"%";
+    var text=imgSteps[imgI][0],secs=imgSteps[imgI][1],tx=$("imgText");tx.classList.add("fade");
+    setTimeout(function(){tx.textContent=text;tx.classList.remove("fade");},300);
+    if(imgVoiceOn&&TTS){imgSpeak(text,secs);}else{imgRemain=secs*1000;imgResumeTimer();}}
+  function imgSpeak(text,secs){try{TTS.cancel();}catch(e){}
+    var u=new SpeechSynthesisUtterance(text);if(imgVoice)u.voice=imgVoice;u.rate=0.9;u.pitch=1;
+    u.onend=function(){if(imgPaused)return;var gap=Math.max(1200,Math.round(secs*300));
+      clearTimeout(imgTimer);imgTimer=setTimeout(function(){imgI++;imgShow();},gap);};
+    u.onerror=function(){if(imgPaused)return;imgRemain=secs*1000;imgResumeTimer();};
+    try{TTS.speak(u);}catch(e){imgRemain=secs*1000;imgResumeTimer();}}
+  function imgResumeTimer(){clearTimeout(imgTimer);if(imgPaused)return;
+    imgLastStart=performance.now();imgTimer=setTimeout(function(){imgI++;imgShow();},imgRemain);}
+  function imgDone(){$("imgProg").style.width="100%";var tx=$("imgText");tx.classList.remove("fade");
+    tx.textContent="Done. Carry it to the line.";$("imgStep").textContent=imgSteps.length;
+    if(TTS){try{TTS.cancel();}catch(e){}}}
+  function stopImagery(){clearTimeout(imgTimer);if(TTS){try{TTS.cancel();}catch(e){}}}
+  $("imgPause").addEventListener("click",function(){imgPaused=!imgPaused;this.textContent=imgPaused?"Resume":"Pause";
+    if(imgPaused){clearTimeout(imgTimer);if(imgVoiceOn&&TTS){try{TTS.cancel();}catch(e){}}
+      else if(imgLastStart){imgRemain-=performance.now()-imgLastStart;}}
+    else{if(imgVoiceOn&&TTS){imgShow();}else{imgResumeTimer();}}});
+  $("imgSkip").addEventListener("click",function(){clearTimeout(imgTimer);if(TTS){try{TTS.cancel();}catch(e){}}
+    imgPaused=false;$("imgPause").textContent="Pause";imgI++;imgShow();});
+  $("imageryBegin").addEventListener("click",imageryStart);
+
+  /* =============== ROUTINE =============== */
+  var ROUTINE_KEY="fp_routine_v1";
+  var DEFAULT_ROUTINE=[["Set your stance",5],["Breathe out, settle",4],["Nock & hook",4],
+    ["Set & draw",4],["Anchor",3],["Expand & aim",5],["Release & follow through",3]];
+  var routine=[];
+  function loadRoutine(){try{var r=JSON.parse(localStorage.getItem(ROUTINE_KEY));if(r&&r.length)return r;}catch(e){}return DEFAULT_ROUTINE.map(function(s){return s.slice();});}
+  function saveRoutine(){try{localStorage.setItem(ROUTINE_KEY,JSON.stringify(routine));}catch(e){}}
+  function renderRoutine(){var list=$("routineList");list.innerHTML="";
+    routine.forEach(function(step,i){
+      var row=document.createElement("div");row.className="stepRow";
+      var name=document.createElement("input");name.type="text";name.value=step[0];name.placeholder="Step";
+      name.addEventListener("input",function(){routine[i][0]=name.value;saveRoutine();});
+      var sec=document.createElement("input");sec.type="number";sec.min="1";sec.max="60";sec.value=step[1];
+      sec.addEventListener("input",function(){routine[i][1]=Math.max(1,parseInt(sec.value||1,10));saveRoutine();});
+      var u=document.createElement("span");u.className="unit";u.textContent="s";
+      var del=document.createElement("button");del.className="del";del.innerHTML="&times;";del.title="Remove";
+      del.addEventListener("click",function(){routine.splice(i,1);saveRoutine();renderRoutine();});
+      row.appendChild(name);row.appendChild(sec);row.appendChild(u);row.appendChild(del);list.appendChild(row);
+    });}
+  $("addStep").addEventListener("click",function(){routine.push(["New step",4]);saveRoutine();renderRoutine();});
+  $("routineReset").addEventListener("click",function(){routine=DEFAULT_ROUTINE.map(function(s){return s.slice();});saveRoutine();renderRoutine();});
+  var rnI=0,rnTimer=null,rnCountTimer=null,rnActive=false;
+  function routineBegin(){if(!routine.length)return;rnActive=true;rnI=0;$("rnTot").textContent=routine.length;show("routineGame");rnRun();}
+  function rnRun(){if(!rnActive)return;if(rnI>=routine.length){routineDone();return;}
+    var step=routine[rnI],secs=step[1];beep(720,.12,.12);
+    $("rnStep").textContent=rnI+1;$("rnProg").style.width=(rnI/routine.length*100)+"%";
+    $("rnLabel").textContent=step[0];
+    $("rnNext").textContent=(rnI+1<routine.length)?("Next: "+routine[rnI+1][0]):"Last step";
+    var remain=secs;$("rnCount").textContent=Math.ceil(remain);
+    clearInterval(rnCountTimer);rnCountTimer=setInterval(function(){remain-=0.1;$("rnCount").textContent=Math.max(0,Math.ceil(remain));},100);
+    rnTimer=setTimeout(function(){clearInterval(rnCountTimer);rnI++;rnRun();},secs*1000);}
+  function routineDone(){stopRoutine();beep(880,.15,.12);setTimeout(function(){beep(1046,.18,.12);},180);
+    $("rnProg").style.width="100%";$("rnLabel").textContent="Shot away.";$("rnCount").textContent="✓";$("rnNext").textContent="";}
+  function stopRoutine(){rnActive=false;clearTimeout(rnTimer);clearInterval(rnCountTimer);}
+  $("routineBegin").addEventListener("click",routineBegin);
+  document.querySelector("[data-routine-end]").addEventListener("click",function(){show("routineStart");});
+
+  /* =============== BINAURAL =============== */
+  var BIN={theta:{beat:4,carrier:200,band:"Deep calm · theta"},
+           alpha:{beat:10,carrier:210,band:"Relaxed focus · alpha"},
+           beta:{beat:18,carrier:220,band:"Alert / activate · beta"}};
+  var binKey="alpha",binTimerMin=0,binCtx=null,binOscL=null,binOscR=null,binGain=null,
+      binPlaying=false,binAutoStop=null,binElapsedTimer=null,binStartTs=0;
+  seg($("binPreset"),function(b){binKey=b.dataset.k;binReflect();});
+  seg($("binTimer"),function(b){binTimerMin=parseInt(b.dataset.m,10);});
+  $("binVol").addEventListener("input",function(){if(binGain&&binCtx)binGain.gain.setTargetAtTime(binVolVal(),binCtx.currentTime,0.05);});
+  function binVolVal(){return (parseInt($("binVol").value,10)/100)*0.22;}
+  function binReflect(){var p=BIN[binKey];$("binWave").textContent=p.beat+" Hz";$("binBand").textContent=p.band;}
+  function binStartPlay(){try{
+    binCtx=binCtx||new (window.AudioContext||window.webkitAudioContext)();if(binCtx.state==="suspended")binCtx.resume();
+    var p=BIN[binKey],merger=binCtx.createChannelMerger(2);
+    binOscL=binCtx.createOscillator();binOscR=binCtx.createOscillator();
+    binOscL.frequency.value=p.carrier;binOscR.frequency.value=p.carrier+p.beat;
+    binOscL.type="sine";binOscR.type="sine";
+    binGain=binCtx.createGain();binGain.gain.value=0;
+    binOscL.connect(merger,0,0);binOscR.connect(merger,0,1);merger.connect(binGain);binGain.connect(binCtx.destination);
+    binOscL.start();binOscR.start();
+    binGain.gain.setTargetAtTime(binVolVal(),binCtx.currentTime,0.1);
+    binPlaying=true;binStartTs=performance.now();$("binToggle").textContent="Stop";
+    binElapsedTimer=setInterval(function(){$("binElapsed").textContent="Playing · "+fmtClock((performance.now()-binStartTs)/1000);},500);
+    if(binTimerMin>0)binAutoStop=setTimeout(stopBinaural,binTimerMin*60*1000);
+  }catch(e){$("binElapsed").textContent="Audio unavailable on this device.";}}
+  function stopBinaural(){if(!binPlaying){return;}
+    clearTimeout(binAutoStop);clearInterval(binElapsedTimer);
+    try{if(binGain)binGain.gain.setTargetAtTime(0,binCtx.currentTime,0.08);
+      var l=binOscL,r=binOscR;setTimeout(function(){try{l&&l.stop();r&&r.stop();}catch(e){}},300);}catch(e){}
+    binPlaying=false;$("binToggle").textContent="Play";$("binElapsed").textContent="Stopped";}
+  $("binToggle").addEventListener("click",function(){binPlaying?stopBinaural():binStartPlay();});
+  $("binauralBegin").addEventListener("click",function(){binReflect();show("binauralGame");});
+
+  /* init */
+  routine=loadRoutine();renderRoutine();binReflect();
+})();
+</script>
+</body>
+</html>
